@@ -19,7 +19,7 @@ namespace quickup
             // Try to execute the requested action
             try
             {
-                ParserResult<RunOption> result = Parser.Default.ParseArguments<RunOption>(args);
+                ParserResult<QuickupOptions> result = Parser.Default.ParseArguments<QuickupOptions>(args);
 
                 // Only display ==== START ==== if the parsing is successful, to avoid changing colors for the --help auto-screen
                 if (result.Tag == ParserResultType.Parsed)
@@ -30,8 +30,14 @@ namespace quickup
                 }
 
                 // Actual execution of the requested command
-                result.WithParsed(options => beep = options.Beep);
-                code = result.MapResult(run => { QuickupEngine.Run(run); return 0; }, _ => 1);
+                code = result.MapResult(
+                    options =>
+                    {
+                        QuickupEngine.Run(options);
+                        beep = options.Beep;
+                        return 0;
+                    },
+                    errors => 1);
             }
             catch (Exception e)
             {

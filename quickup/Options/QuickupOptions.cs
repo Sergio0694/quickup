@@ -11,7 +11,7 @@ namespace quickup.Options
     /// <summary>
     /// The base <see langword="class"/> to hold the user options when invoking the program
     /// </summary>
-    internal abstract class QuickupOptionsBase
+    internal sealed class QuickupOptions
     {
         [Option('i', "include", HelpText = "The list of file extensions to look for when scanning the source directory. If not specified, all existing files will be copied.", Required = false, Separator = ',')]
         public IEnumerable<string> FileInclusions { get; set; }
@@ -44,7 +44,7 @@ namespace quickup.Options
         /// Executes a preliminary validation of the current instance
         /// </summary>
         [AssertionMethod]
-        public virtual void Validate()
+        public void Validate()
         {
             char[] invalid = Path.GetInvalidFileNameChars();
             if (FileInclusions.Any(ext => ext.Any(c => invalid.Contains(c))))

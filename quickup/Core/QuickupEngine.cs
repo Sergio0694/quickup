@@ -22,7 +22,7 @@ namespace quickup.Core
         /// Executes the run command
         /// </summary>
         /// <param name="options">The command options</param>
-        public static void Run([NotNull] RunOption options)
+        public static void Run([NotNull] QuickupOptions options)
         {
             // Load the source files to sync
             IReadOnlyCollection<string>
