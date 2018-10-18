@@ -40,6 +40,9 @@ namespace quickup.Options
         [Option('v', "verbose", Default = false, HelpText = "Indicates whether or not to display additional statistics.", Required = false)]
         public bool Verbose { get; set; }
 
+        [Option("multithread", Default = false, HelpText = "Indicates whether or not to copy the files in parallel. This should be enabled when working on an SSD.", Required = false)]
+        public bool Multithread { get; set; }
+
         /// <summary>
         /// Executes a preliminary validation of the current instance
         /// </summary>

@@ -34,7 +34,6 @@ namespace quickup
                         // UI setup
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         ConsoleHelper.WriteLine($"{Environment.NewLine}==== START ====");
-                        ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Querying files...");
 
                         // Execute the operation and display the info
                         Console.ForegroundColor = ConsoleColor.White; // To display the progress bar

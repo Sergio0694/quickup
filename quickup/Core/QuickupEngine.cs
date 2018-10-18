@@ -29,6 +29,7 @@ namespace quickup.Core
             StatisticsManager statistics = new StatisticsManager();
 
             // Load the source files to sync
+            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Querying files...");
             IReadOnlyCollection<string>
                 extensions = options.Preset == ExtensionsPreset.None
                     ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
@@ -37,7 +38,8 @@ namespace quickup.Core
             IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
 
             // Process the loaded files from the source directory
-            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics);
+            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Syncing files...");
+            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, options.Multithread);
 
             // Display the statistics
             statistics.StopTracking();
@@ -95,23 +97,27 @@ namespace quickup.Core
         /// <param name="source">The original source directory</param>
         /// <param name="target">The root target directory</param>
         /// <param name="statistics">The statistics instance to track the performed operations</param>
+        /// <param name="multithread">Indicates whether or not to parallelize the copy operations</param>
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")] // Progress bar inside parallel code
         private static void SyncFiles(
             [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
             [NotNull] string source, [NotNull] string target,
-            [NotNull] StatisticsManager statistics)
+            [NotNull] StatisticsManager statistics, bool multithread)
         {
             using (AsciiProgressBar bar = new AsciiProgressBar())
             {
-                int i = 0;
+                int progress = 0, total = map.Values.Sum(l => l.Count);
                 string name = Path.GetFileName(source); // Get the name of the source folder
 
                 // Copy the files in parallel, one task for each subdirectory in the source tree
-                Parallel.ForEach(map, pair =>
+                IReadOnlyList<KeyValuePair<string, IReadOnlyCollection<string>>> files = map.ToArray();
+                int threads = multithread ? Environment.ProcessorCount : 1;
+                Parallel.For(0, files.Count, new ParallelOptions { MaxDegreeOfParallelism = threads }, i =>
                 {
                     try
                     {
                         // Create the target directory
+                        KeyValuePair<string, IReadOnlyCollection<string>> pair = files[i];
                         string
                             relative = pair.Key.Substring(source.Length),
                             folder = string.IsNullOrEmpty(relative)
@@ -128,10 +134,10 @@ namespace quickup.Core
                                 File.Copy(file, copy);
                                 statistics.AddFile(copy);
                             }
+                            bar.Report((double)Interlocked.Increment(ref progress) / total);
                         }
-                        bar.Report((double)Interlocked.Increment(ref i) / map.Count);
                     }
-                    catch (IOException)
+                    catch (UnauthorizedAccessException)
                     {
                         // Carry on
                     }
