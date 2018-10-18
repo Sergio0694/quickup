@@ -78,7 +78,8 @@ namespace quickup.Core
                     IEnumerable<string> query = extensions.Count == 0
                         ? Directory.EnumerateFiles(directory, "*")
                         : extensions.SelectMany(extension => Directory.EnumerateFiles(directory, $"*.{extension}"));
-                    map.Add(directory, query.Where(file => !exclusions.Contains(Path.GetExtension(file))).ToArray());
+                    IReadOnlyCollection<string> files = query.Where(file => !exclusions.Contains(Path.GetExtension(file))).ToArray();
+                    if (files.Count > 0) map.Add(directory, files);
 
                     // Drill down
                     foreach (string subdirectory in Directory.EnumerateDirectories(directory))

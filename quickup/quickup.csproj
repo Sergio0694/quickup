@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <PackAsTool>true</PackAsTool>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Sergio Pedri</Authors>
@@ -13,6 +14,9 @@
     <PackageLicenseUrl>https://github.com/Sergio0694/quickup/blob/master/LICENSE</PackageLicenseUrl>
     <Description>A .NET Core 2.1 CLI tool to quickly create one-way backups from one folder to another</Description>
     <PackageReleaseNotes>• Initial release</PackageReleaseNotes>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
