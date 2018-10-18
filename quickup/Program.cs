@@ -33,7 +33,9 @@ namespace quickup
                 code = result.MapResult(
                     options =>
                     {
-                        QuickupEngine.Run(options);
+                        // Execute the operation and display the info
+                        foreach (string info in QuickupEngine.Run(options).ExtractStatistics(options.Verbose))
+                            ConsoleHelper.WriteTaggedMessage(MessageType.Info, info);
                         beep = options.Beep;
                         return 0;
                     },

@@ -22,8 +22,12 @@ namespace quickup.Core
         /// Executes the run command
         /// </summary>
         /// <param name="options">The command options</param>
-        public static void Run([NotNull] QuickupOptions options)
+        [NotNull]
+        public static StatisticsManager Run([NotNull] QuickupOptions options)
         {
+            // Track the current operation
+            StatisticsManager statistics = new StatisticsManager();
+
             // Load the source files to sync
             IReadOnlyCollection<string>
                 extensions = options.Preset?.Convert()
@@ -32,7 +36,11 @@ namespace quickup.Core
             IReadOnlyDictionary<string, IEnumerable<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
 
             // Process the loaded files from the source directory
-            SyncFiles(map, options.SourceDirectory, options.TargetDirectory);
+            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics);
+
+            // Display the statistics
+            statistics.StopTracking();
+            return statistics;
         }
 
         #endregion
@@ -85,10 +93,12 @@ namespace quickup.Core
         /// <param name="map">The map of files to sync</param>
         /// <param name="source">The original source directory</param>
         /// <param name="target">The root target directory</param>
+        /// <param name="statistics">The statistics instance to track the performed operations</param>
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")] // Progress bar inside parallel code
         private static void SyncFiles(
             [NotNull] IReadOnlyDictionary<string, IEnumerable<string>> map,
-            [NotNull] string source, [NotNull] string target)
+            [NotNull] string source, [NotNull] string target,
+            [NotNull] StatisticsManager statistics)
         {
             using (AsciiProgressBar bar = new AsciiProgressBar())
             {
@@ -113,7 +123,10 @@ namespace quickup.Core
                         {
                             string copy = Path.Join(folder, Path.GetFileName(file));
                             if (!File.Exists(copy) || File.GetLastWriteTimeUtc(file).CompareTo(File.GetLastWriteTimeUtc(copy)) > 0)
+                            {
                                 File.Copy(file, copy);
+                                statistics.AddFile(copy);
+                            }
                         }
                         bar.Report((double)Interlocked.Increment(ref i) / map.Count);
                     }
