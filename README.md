@@ -30,10 +30,10 @@ Other options include:
 
 ### Examples
 
-Create a backup of folder A to folder B, notify when the operation finishes and play a notification sound:
+Create a backup of folder A on another drive, notify when the operation finishes and play a notification sound:
 
 ```
-quickup -s c:\users\myname\documents\A -t d:\backups\B -b -v
+quickup -s c:\users\myname\documents\A -t d:\backups -b -v
 ```
 
 ## Dependencies
