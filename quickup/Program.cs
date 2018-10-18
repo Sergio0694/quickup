@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using CommandLine;
+using CommandLine.Text;
 using quickup.Core;
 using quickup.Enums;
 using quickup.Options;
@@ -41,7 +42,7 @@ namespace quickup
                         beep = options.Beep;
                         return 0;
                     },
-                    errors => 1);
+                    errors => { Console.Write(HelpText.AutoBuild(result)); return 1; });
             }
             catch (Exception e)
             {
