@@ -39,7 +39,12 @@ namespace quickup.Core
 
             // Process the loaded files from the source directory
             ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Syncing files...");
-            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, options.Multithread);
+            int threads = options.Multithread
+                ? options.Threads == -1
+                    ? Environment.ProcessorCount
+                    : Environment.ProcessorCount >= options.Threads ? options.Threads : Environment.ProcessorCount
+                : 1;
+            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, threads);
 
             // Display the statistics
             statistics.StopTracking();
@@ -97,12 +102,13 @@ namespace quickup.Core
         /// <param name="source">The original source directory</param>
         /// <param name="target">The root target directory</param>
         /// <param name="statistics">The statistics instance to track the performed operations</param>
-        /// <param name="multithread">Indicates whether or not to parallelize the copy operations</param>
+        /// <param name="threads">The maximum number of threads to use to perform the copy operations</param>
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")] // Progress bar inside parallel code
         private static void SyncFiles(
             [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
             [NotNull] string source, [NotNull] string target,
-            [NotNull] StatisticsManager statistics, bool multithread)
+            [NotNull] StatisticsManager statistics,
+            int threads)
         {
             using (AsciiProgressBar bar = new AsciiProgressBar())
             {
@@ -111,7 +117,6 @@ namespace quickup.Core
 
                 // Copy the files in parallel, one task for each subdirectory in the source tree
                 IReadOnlyList<KeyValuePair<string, IReadOnlyCollection<string>>> files = map.ToArray();
-                int threads = multithread ? Environment.ProcessorCount : 1;
                 Parallel.For(0, files.Count, new ParallelOptions { MaxDegreeOfParallelism = threads }, i =>
                 {
                     try

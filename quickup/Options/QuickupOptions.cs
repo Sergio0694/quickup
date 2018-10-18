@@ -43,6 +43,9 @@ namespace quickup.Options
         [Option("multithread", Default = false, HelpText = "Indicates whether or not to copy the files in parallel. This should be enabled when working on an SSD.", Required = false)]
         public bool Multithread { get; set; }
 
+        [Option("threads", Default = -1, HelpText = "Indicates the maximum number of threads to use to copy the files. If set to -1, either 1 or the number of CPU threads will be used.", Required = false)]
+        public int Threads { get; set; }
+
         /// <summary>
         /// Executes a preliminary validation of the current instance
         /// </summary>
@@ -67,6 +70,8 @@ namespace quickup.Options
                 throw new ArgumentException("The list of extensions to exclude must be empty when other extensions to look for are specified");
             if (Preset != ExtensionsPreset.None && (FileInclusions.Any() || FileExclusions.Any()))
                 throw new ArgumentException("The preset option cannot be used with --include or --exclude");
+            if (Threads == 0 || Threads < -1) throw new ArgumentException("Invalid number of threads");
+            if (Multithread && Threads == 1) throw new ArgumentException("Do you really want to multithread with just a single thread?");
         }
     }
 }
