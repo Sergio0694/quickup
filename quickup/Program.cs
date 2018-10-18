@@ -19,7 +19,7 @@ namespace quickup
             // Try to execute the requested action
             try
             {
-                ParserResult<QuickupOptions> result = Parser.Default.ParseArguments<QuickupOptions>(args);
+                ParserResult<QuickupOptions> result = new Parser(setting => setting.CaseInsensitiveEnumValues = true).ParseArguments<QuickupOptions>(args);
 
                 // Only display ==== START ==== if the parsing is successful, to avoid changing colors for the --help auto-screen
                 if (result.Tag == ParserResultType.Parsed)

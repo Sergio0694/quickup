@@ -19,8 +19,8 @@ namespace quickup.Options
         [Option('e', "exclude", HelpText = "The list of optional file extensions to ignore.", Required = false, Separator = ',')]
         public IEnumerable<string> FileExclusions { get; set; }
 
-        [Option('p', "preset", Default = null, HelpText = "An optional preset to quickly filter certain common file types. This option cannot be used when --include or --exclude are used.", Required = false)]
-        public ExtensionsPreset? Preset { get; set; }
+        [Option('p', "preset", Default = ExtensionsPreset.None, HelpText = "An optional preset to quickly filter certain common file types. This option cannot be used when --include or --exclude are used. Existing options are [documents|images|music|videos|code].", Required = false)]
+        public ExtensionsPreset Preset { get; set; }
 
         [Option('M', "maxsize", Default = 104_857_600, HelpText = "The maximum size of files to be copied.", Required = false)]
         public long MaxSize { get; set; }
@@ -62,7 +62,7 @@ namespace quickup.Options
             if (!Directory.Exists(TargetDirectory)) throw new ArgumentException("The target directory doesn't exist");
             if (FileInclusions.Any() && FileExclusions.Any())
                 throw new ArgumentException("The list of extensions to exclude must be empty when other extensions to look for are specified");
-            if (Preset.HasValue && (FileInclusions.Any() || FileExclusions.Any()))
+            if (Preset != ExtensionsPreset.None && (FileInclusions.Any() || FileExclusions.Any()))
                 throw new ArgumentException("The preset option cannot be used with --include or --exclude");
         }
     }

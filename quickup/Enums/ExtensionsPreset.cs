@@ -9,10 +9,11 @@ namespace quickup.Enums
     /// </summary>
     internal enum ExtensionsPreset
     {
+        None,
         Documents,
         Images,
-        Audio,
-        Video,
+        Music,
+        Videos,
         Code
     }
 
@@ -34,9 +35,9 @@ namespace quickup.Enums
                     return new[] { "doc", "docx", "txt", "rtf", "tex", "csv", "pps", "ppsx", "ppt", "pptx", "xls", "xlsx", "xlr", "odt", "pdf" };
                 case ExtensionsPreset.Images:
                     return new[] { "ai", "bmp", "gif", "ico", "jpeg", "jpg", "png", "ps", "psd", "svg", "tif", "tiff", "gif", "tga", "yuv" };
-                case ExtensionsPreset.Audio:
+                case ExtensionsPreset.Music:
                     return new[] { "aif", "cda", "mid", "midi", "mp3", "mpa", "ogg", "wav", "wma", "wpl", "flac", "iff", "m3u", "m4a" };
-                case ExtensionsPreset.Video:
+                case ExtensionsPreset.Videos:
                     return new[] { "3g2", "3gp", "avi", "flv", "h264", "m4v", "mkv", "mov", "mp4", "mpg", "mpeg", "rm", "swf", "vob", "wmv", "asf", "rm", "srt" };
                 case ExtensionsPreset.Code:
                     return new[] { "c", "class", "cpp", "cc", "cu", "cs", "h", "java", "sh", "swift", "vb", "rb", "asp", "aspx", "css", "htm", "html", "js", "jsp", "php", "xml", "xaml", "lua", "m", "pl", "py", "pyc", "sh" };

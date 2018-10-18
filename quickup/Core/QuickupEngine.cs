@@ -30,8 +30,9 @@ namespace quickup.Core
 
             // Load the source files to sync
             IReadOnlyCollection<string>
-                extensions = options.Preset?.Convert()
-                             ?? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray(),
+                extensions = options.Preset == ExtensionsPreset.None
+                    ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
+                    : options.Preset.Convert(),
                 exclusions = new HashSet<string>(options.FileExclusions.Select(entry => $".{entry.ToLowerInvariant()}"));
             IReadOnlyDictionary<string, IEnumerable<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
 
