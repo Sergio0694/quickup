@@ -34,6 +34,8 @@ namespace quickup
                     options =>
                     {
                         // Execute the operation and display the info
+                        Console.ForegroundColor = ConsoleColor.White; // To display the progress bar
+                        options.Validate();
                         foreach (string info in QuickupEngine.Run(options).ExtractStatistics(options.Verbose))
                             ConsoleHelper.WriteTaggedMessage(MessageType.Info, info);
                         beep = options.Beep;
