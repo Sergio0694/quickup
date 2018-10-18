@@ -4,6 +4,15 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Authors>Sergio Pedri</Authors>
+    <RepositoryUrl>https://github.com/Sergio0694/quickup</RepositoryUrl>
+    <PackageTags>dotnet net cli netcore netstandard tool backup utility csharp</PackageTags>
+    <Copyright>Copyright (c) 2018 Sergio Pedri</Copyright>
+    <PackageProjectUrl>https://github.com/Sergio0694/quickup</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/Sergio0694/quickup/blob/master/LICENSE</PackageLicenseUrl>
+    <Description>A .NET Core 2.1 CLI tool to quickly create one-way backups from one folder to another</Description>
+    <PackageReleaseNotes>• Initial release</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
