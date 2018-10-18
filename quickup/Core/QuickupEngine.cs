@@ -34,7 +34,7 @@ namespace quickup.Core
                     ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
                     : options.Preset.Convert(),
                 exclusions = new HashSet<string>(options.FileExclusions.Select(entry => $".{entry.ToLowerInvariant()}"));
-            IReadOnlyDictionary<string, IEnumerable<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
+            IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
 
             // Process the loaded files from the source directory
             SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics);
@@ -55,13 +55,13 @@ namespace quickup.Core
         /// <param name="extensions">The list of file extensions to exclusively include</param>
         /// <param name="exclusions">The list of file extensions to exclude</param>
         /// <param name="verbose">Indicates whether or not to display info for blocked directories</param>
-        private static IReadOnlyDictionary<string, IEnumerable<string>> LoadFiles(
+        private static IReadOnlyDictionary<string, IReadOnlyCollection<string>> LoadFiles(
             [NotNull] string path,
             [NotNull, ItemNotNull] IReadOnlyCollection<string> extensions,
             [NotNull, ItemNotNull] IReadOnlyCollection<string> exclusions,
             bool verbose)
         {
-            Dictionary<string, IEnumerable<string>> map = new Dictionary<string, IEnumerable<string>>();
+            Dictionary<string, IReadOnlyCollection<string>> map = new Dictionary<string, IReadOnlyCollection<string>>();
 
             void Explore(string directory)
             {
@@ -71,7 +71,7 @@ namespace quickup.Core
                     IEnumerable<string> query = extensions.Count == 0
                         ? Directory.EnumerateFiles(directory, "*")
                         : extensions.SelectMany(extension => Directory.EnumerateFiles(directory, $"*.{extension}"));
-                    map.Add(directory, query.Where(file => !exclusions.Contains(Path.GetExtension(file))));
+                    map.Add(directory, query.Where(file => !exclusions.Contains(Path.GetExtension(file))).ToArray());
 
                     // Drill down
                     foreach (string subdirectory in Directory.EnumerateDirectories(directory))
@@ -97,7 +97,7 @@ namespace quickup.Core
         /// <param name="statistics">The statistics instance to track the performed operations</param>
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")] // Progress bar inside parallel code
         private static void SyncFiles(
-            [NotNull] IReadOnlyDictionary<string, IEnumerable<string>> map,
+            [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
             [NotNull] string source, [NotNull] string target,
             [NotNull] StatisticsManager statistics)
         {

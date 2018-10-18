@@ -22,24 +22,24 @@ namespace quickup
             {
                 ParserResult<QuickupOptions> result = new Parser(setting => setting.CaseInsensitiveEnumValues = true).ParseArguments<QuickupOptions>(args);
 
-                // Only display ==== START ==== if the parsing is successful, to avoid changing colors for the --help auto-screen
-                if (result.Tag == ParserResultType.Parsed)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    ConsoleHelper.WriteLine($"{Environment.NewLine}==== START ====");
-                    parsed = true;
-                }
-
                 // Actual execution of the requested command
                 code = result.MapResult(
                     options =>
                     {
+                        // Make sure the parameters are correct
+                        parsed = true;
+                        beep = options.Beep;
+                        options.Validate();
+
+                        // UI setup
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        ConsoleHelper.WriteLine($"{Environment.NewLine}==== START ====");
+                        ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Querying files...");
+
                         // Execute the operation and display the info
                         Console.ForegroundColor = ConsoleColor.White; // To display the progress bar
-                        options.Validate();
                         foreach (string info in QuickupEngine.Run(options).ExtractStatistics(options.Verbose))
                             ConsoleHelper.WriteTaggedMessage(MessageType.Info, info);
-                        beep = options.Beep;
                         return 0;
                     },
                     errors => { Console.Write(HelpText.AutoBuild(result)); return 1; });
