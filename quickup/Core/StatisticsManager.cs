@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
+using quickup.Enums;
 
 namespace quickup.Core
 {
@@ -21,8 +22,9 @@ namespace quickup.Core
         [NotNull]
         private readonly ConcurrentDictionary<string, (int Count, long Bytes)> SizeMap = new ConcurrentDictionary<string, (int, long)>();
 
-        // The total number of processed files
-        private int _Files;
+        // The map for the number of different file operations performed
+        [NotNull]
+        private readonly ConcurrentDictionary<FileUpdateType, int> FileOperationsMap = new ConcurrentDictionary<FileUpdateType, int>();
 
         // The total number of duplicate bytes identified
         private long _Bytes;
@@ -36,12 +38,16 @@ namespace quickup.Core
         /// Adds a new processed file to the statistics
         /// </summary>
         /// <param name="path">The path of the processed file</param>
-        public void AddFile([NotNull] string path)
+        /// <param name="type">The operation performed on the current file</param>
+        public void AddOperation([NotNull] string path, FileUpdateType type)
         {
-            Interlocked.Increment(ref _Files);
-            long size = new FileInfo(path).Length;
-            Interlocked.Add(ref _Bytes, size);
-            SizeMap.AddOrUpdate(Path.GetExtension(path), (1, size), (_, pair) => (pair.Count + 1, pair.Bytes + size));
+            if (type != FileUpdateType.Remove)
+            {
+                long size = new FileInfo(path).Length;
+                Interlocked.Add(ref _Bytes, size);
+                SizeMap.AddOrUpdate(Path.GetExtension(path), (1, size), (_, pair) => (pair.Count + 1, pair.Bytes + size));
+            }
+            FileOperationsMap.AddOrUpdate(type, _ => 1, (_, i) => i + 1);
         }
 
         /// <summary>
@@ -57,8 +63,13 @@ namespace quickup.Core
         public IEnumerable<string> ExtractStatistics(bool verbose)
         {
             yield return $"Elapsed time:\t\t{Stopwatch.Elapsed:g}";
-            yield return $"Copied files:\t\t{_Files}";
-            if (verbose) yield return $"Bytes copied:\t\t{_Bytes}";
+            if (verbose)
+            {
+                yield return $"Added:\t\t{(FileOperationsMap.TryGetValue(FileUpdateType.Add, out int i) ? i : 0)}";
+                yield return $"Updated:\t\t{(FileOperationsMap.TryGetValue(FileUpdateType.Update, out i) ? i : 0)}";
+                yield return $"Removed:\t\t{(FileOperationsMap.TryGetValue(FileUpdateType.Remove, out i) ? i : 0)}";
+                yield return $"Bytes copied:\t\t{_Bytes}";
+            }
             yield return $"Approximate size:\t{_Bytes.ToFileSizeString()}";
             if (verbose)
             {

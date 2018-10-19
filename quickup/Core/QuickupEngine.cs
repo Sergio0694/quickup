@@ -135,10 +135,15 @@ namespace quickup.Core
                         foreach (string file in pair.Value)
                         {
                             string copy = Path.Join(folder, Path.GetFileName(file));
-                            if (!File.Exists(copy) || File.GetLastWriteTimeUtc(file).CompareTo(File.GetLastWriteTimeUtc(copy)) > 0)
+                            if (!File.Exists(copy))
                             {
                                 File.Copy(file, copy);
-                                statistics.AddFile(copy);
+                                statistics.AddOperation(copy, FileUpdateType.Add);
+                            }
+                            else if (File.GetLastWriteTimeUtc(file).CompareTo(File.GetLastWriteTimeUtc(copy)) > 0)
+                            {
+                                File.Copy(file, copy, true);
+                                statistics.AddOperation(copy, FileUpdateType.Update);
                             }
                             bar.Report((double)Interlocked.Increment(ref progress) / total);
                         }
