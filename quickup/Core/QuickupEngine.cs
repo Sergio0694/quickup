@@ -29,7 +29,7 @@ namespace quickup.Core
             StatisticsManager statistics = new StatisticsManager();
 
             // Load the source files to sync
-            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Querying files...");
+            ConsoleHelper.WriteLine("Querying files...");
             IReadOnlyCollection<string>
                 extensions = options.Preset == ExtensionsPreset.None
                     ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
@@ -38,13 +38,17 @@ namespace quickup.Core
             IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
 
             // Process the loaded files from the source directory
-            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Syncing files...");
+            ConsoleHelper.WriteLine("Syncing files...");
             int threads = options.Multithread
                 ? options.Threads == -1
                     ? Environment.ProcessorCount
                     : Environment.ProcessorCount >= options.Threads ? options.Threads : Environment.ProcessorCount
                 : 1;
             SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, threads);
+
+            // Cleanup
+            ConsoleHelper.WriteLine("Cleanup...");
+            Cleanup(map, options.SourceDirectory, options.TargetDirectory, statistics);
 
             // Display the statistics
             statistics.StopTracking();
@@ -135,20 +139,77 @@ namespace quickup.Core
                         foreach (string file in pair.Value)
                         {
                             string copy = Path.Join(folder, Path.GetFileName(file));
-                            if (!File.Exists(copy) || File.GetLastWriteTimeUtc(file).CompareTo(File.GetLastWriteTimeUtc(copy)) > 0)
+                            if (!File.Exists(copy))
                             {
                                 File.Copy(file, copy);
-                                statistics.AddFile(copy);
+                                statistics.AddOperation(copy, FileUpdateType.Add);
+                            }
+                            else if (File.GetLastWriteTimeUtc(file).CompareTo(File.GetLastWriteTimeUtc(copy)) > 0)
+                            {
+                                File.Copy(file, copy, true);
+                                statistics.AddOperation(copy, FileUpdateType.Update);
                             }
                             bar.Report((double)Interlocked.Increment(ref progress) / total);
                         }
                     }
-                    catch (UnauthorizedAccessException)
+                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
                     {
                         // Carry on
                     }
                 });
             }
+        }
+
+        /// <summary>
+        /// Cleans up the backup directory, removing empty folders and unnecessary files
+        /// </summary>
+        /// <param name="map">The map of files to sync</param>
+        /// <param name="source">The original source directory</param>
+        /// <param name="target">The root target directory</param>
+        /// <param name="statistics">The statistics instance to track the performed operations</param>
+        private static void Cleanup(
+            [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
+            [NotNull] string source, [NotNull] string target,
+            [NotNull] StatisticsManager statistics)
+        {
+            string
+                name = Path.GetFileName(source),
+                root = Path.Join(target, name);
+
+            void Cleanup(string directory)
+            {
+                // Post-order cleanup for unnecessary files
+                string[] subdirectories = Directory.GetDirectories(directory);
+                foreach (string subdirectory in subdirectories) Cleanup(subdirectory);
+
+                // Delete the files that don't belong to the source folder with the current settings
+                string
+                    relative = directory.Substring(root.Length),
+                    key = Path.Join(source, relative);
+                IReadOnlyCollection<string> files = map.TryGetValue(key, out IReadOnlyCollection<string> paths)
+                    ? new HashSet<string>(paths.Select(Path.GetFileName))
+                    : null;
+                foreach (string file in Directory.GetFiles(directory))
+                    if (files?.Contains(Path.GetFileName(file)) != true)
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                            statistics.AddOperation(file, FileUpdateType.Remove);
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            // Can happen in rare situations
+                        }
+                    }
+
+                // Delete the subfolders, if necessary
+                foreach (string subdirectory in subdirectories)
+                    if (!Directory.EnumerateFiles(subdirectory).Any() && !Directory.EnumerateDirectories(subdirectory).Any())
+                        Directory.Delete(subdirectory);
+            }
+
+            Cleanup(root);
         }
 
         #endregion
