@@ -29,7 +29,7 @@ namespace quickup.Core
             StatisticsManager statistics = new StatisticsManager();
 
             // Load the source files to sync
-            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Querying files...");
+            ConsoleHelper.WriteLine("Querying files...");
             IReadOnlyCollection<string>
                 extensions = options.Preset == ExtensionsPreset.None
                     ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
@@ -38,7 +38,7 @@ namespace quickup.Core
             IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
 
             // Process the loaded files from the source directory
-            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Syncing files...");
+            ConsoleHelper.WriteLine("Syncing files...");
             int threads = options.Multithread
                 ? options.Threads == -1
                     ? Environment.ProcessorCount
@@ -47,7 +47,7 @@ namespace quickup.Core
             SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, threads);
 
             // Cleanup
-            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Cleanup...");
+            ConsoleHelper.WriteLine("Cleanup...");
             Cleanup(map, options.SourceDirectory, options.TargetDirectory, statistics);
 
             // Display the statistics
@@ -152,7 +152,7 @@ namespace quickup.Core
                             bar.Report((double)Interlocked.Increment(ref progress) / total);
                         }
                     }
-                    catch (UnauthorizedAccessException)
+                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
                     {
                         // Carry on
                     }
@@ -190,8 +190,15 @@ namespace quickup.Core
                 foreach (string file in Directory.GetFiles(directory))
                     if (files?.Contains(file) != true)
                     {
-                        File.Delete(file);
-                        statistics.AddOperation(file, FileUpdateType.Remove);
+                        try
+                        {
+                            File.Delete(file);
+                            statistics.AddOperation(file, FileUpdateType.Remove);
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            // Can happen in rare situations
+                        }
                     }
 
                 // Delete the subfolders, if necessary
