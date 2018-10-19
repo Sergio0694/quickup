@@ -46,6 +46,10 @@ namespace quickup.Core
                 : 1;
             SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, threads);
 
+            // Cleanup
+            ConsoleHelper.WriteTaggedMessage(MessageType.Info, "Cleanup...");
+            Cleanup(map, options.SourceDirectory, options.TargetDirectory, statistics);
+
             // Display the statistics
             statistics.StopTracking();
             return statistics;
@@ -78,7 +82,7 @@ namespace quickup.Core
                     IEnumerable<string> query = extensions.Count == 0
                         ? Directory.EnumerateFiles(directory, "*")
                         : extensions.SelectMany(extension => Directory.EnumerateFiles(directory, $"*.{extension}"));
-                    IReadOnlyCollection<string> files = query.Where(file => !exclusions.Contains(Path.GetExtension(file))).ToArray();
+                    IReadOnlyCollection<string> files = new HashSet<string>(query.Where(file => !exclusions.Contains(Path.GetExtension(file)))); // O(1) goodness
                     if (files.Count > 0) map.Add(directory, files);
 
                     // Drill down
@@ -154,6 +158,49 @@ namespace quickup.Core
                     }
                 });
             }
+        }
+
+        /// <summary>
+        /// Cleans up the backup directory, removing empty folders and unnecessary files
+        /// </summary>
+        /// <param name="map">The map of files to sync</param>
+        /// <param name="source">The original source directory</param>
+        /// <param name="target">The root target directory</param>
+        /// <param name="statistics">The statistics instance to track the performed operations</param>
+        private static void Cleanup(
+            [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
+            [NotNull] string source, [NotNull] string target,
+            [NotNull] StatisticsManager statistics)
+        {
+            string
+                name = Path.GetFileName(source),
+                root = Path.Join(target, name);
+
+            void Cleanup(string directory)
+            {
+                // Post-order cleanup for unnecessary files
+                string[] subdirectories = Directory.GetDirectories(directory);
+                foreach (string subdirectory in subdirectories) Cleanup(subdirectory);
+
+                // Delete the files that don't belong to the source folder with the current settings
+                string
+                    relative = directory.Substring(root.Length),
+                    key = Path.Join(source, relative);
+                if (!map.TryGetValue(key, out IReadOnlyCollection<string> files)) files = null;
+                foreach (string file in Directory.GetFiles(directory))
+                    if (files?.Contains(file) != true)
+                    {
+                        File.Delete(file);
+                        statistics.AddOperation(file, FileUpdateType.Remove);
+                    }
+
+                // Delete the subfolders, if necessary
+                foreach (string subdirectory in subdirectories)
+                    if (!Directory.EnumerateFiles(subdirectory).Any() && !Directory.EnumerateDirectories(subdirectory).Any())
+                        Directory.Delete(subdirectory);
+            }
+
+            Cleanup(root);
         }
 
         #endregion
