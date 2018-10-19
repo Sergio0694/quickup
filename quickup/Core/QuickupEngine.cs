@@ -82,7 +82,7 @@ namespace quickup.Core
                     IEnumerable<string> query = extensions.Count == 0
                         ? Directory.EnumerateFiles(directory, "*")
                         : extensions.SelectMany(extension => Directory.EnumerateFiles(directory, $"*.{extension}"));
-                    IReadOnlyCollection<string> files = new HashSet<string>(query.Where(file => !exclusions.Contains(Path.GetExtension(file)))); // O(1) goodness
+                    IReadOnlyCollection<string> files = query.Where(file => !exclusions.Contains(Path.GetExtension(file))).ToArray();
                     if (files.Count > 0) map.Add(directory, files);
 
                     // Drill down
@@ -186,9 +186,11 @@ namespace quickup.Core
                 string
                     relative = directory.Substring(root.Length),
                     key = Path.Join(source, relative);
-                if (!map.TryGetValue(key, out IReadOnlyCollection<string> files)) files = null;
+                IReadOnlyCollection<string> files = map.TryGetValue(key, out IReadOnlyCollection<string> paths)
+                    ? new HashSet<string>(paths.Select(Path.GetFileName))
+                    : null;
                 foreach (string file in Directory.GetFiles(directory))
-                    if (files?.Contains(file) != true)
+                    if (files?.Contains(Path.GetFileName(file)) != true)
                     {
                         try
                         {
