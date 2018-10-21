@@ -35,7 +35,7 @@ namespace quickup.Core
                     ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
                     : options.Preset.Convert(),
                 exclusions = new HashSet<string>(options.FileExclusions.Select(entry => $".{entry.ToLowerInvariant()}"));
-            IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.Verbose);
+            IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.DirExclusions.ToArray(), options.Verbose);
 
             // Process the loaded files from the source directory
             ConsoleHelper.WriteLine("Syncing files...");
@@ -65,11 +65,13 @@ namespace quickup.Core
         /// <param name="path">The path of the source directory to load</param>
         /// <param name="extensions">The list of file extensions to exclusively include</param>
         /// <param name="exclusions">The list of file extensions to exclude</param>
+        /// <param name="ignoredDirs">The list of directories to exclude</param>
         /// <param name="verbose">Indicates whether or not to display info for blocked directories</param>
         private static IReadOnlyDictionary<string, IReadOnlyCollection<string>> LoadFiles(
             [NotNull] string path,
             [NotNull, ItemNotNull] IReadOnlyCollection<string> extensions,
             [NotNull, ItemNotNull] IReadOnlyCollection<string> exclusions,
+            [NotNull, ItemNotNull] IReadOnlyCollection<string> ignoredDirs,
             bool verbose)
         {
             Dictionary<string, IReadOnlyCollection<string>> map = new Dictionary<string, IReadOnlyCollection<string>>();
@@ -87,7 +89,8 @@ namespace quickup.Core
 
                     // Drill down
                     foreach (string subdirectory in Directory.EnumerateDirectories(directory))
-                        Explore(subdirectory);
+                        if (!ignoredDirs.Contains(Path.GetFileName(subdirectory)))
+                            Explore(subdirectory);
                 }
                 catch (Exception e) when (e is UnauthorizedAccessException || e is PathTooLongException || e is DirectoryNotFoundException)
                 {

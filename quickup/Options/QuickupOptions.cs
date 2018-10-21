@@ -19,6 +19,9 @@ namespace quickup.Options
         [Option('e', "exclude", HelpText = "The list of optional file extensions to ignore.", Required = false, Separator = ',')]
         public IEnumerable<string> FileExclusions { get; set; }
 
+        [Option("ignore-dir", HelpText = "The list of optional subdirectories to ignore. Note that the dir name will be matched, not the relative path.", Required = false, Separator = ',')]
+        public IEnumerable<string> DirExclusions { get; set; }
+
         [Option('p', "preset", Default = ExtensionsPreset.None, HelpText = "An optional preset to quickly filter certain common file types. This option cannot be used when --include or --exclude are used. Existing options are [documents|images|music|videos|code].", Required = false)]
         public ExtensionsPreset Preset { get; set; }
 
@@ -55,6 +58,9 @@ namespace quickup.Options
             char[] invalid = Path.GetInvalidFileNameChars();
             if (FileInclusions.Any(ext => ext.Any(c => invalid.Contains(c))))
                 throw new ArgumentException("One or more file extensions are not valid");
+            invalid = Path.GetInvalidPathChars();
+            if (DirExclusions.Any(ext => ext.Contains(Path.DirectorySeparatorChar) || ext.Any(c => invalid.Contains(c))))
+                throw new ArgumentException("One or more dir exclusions are not valid");
             if (MaxSize <= 100) throw new ArgumentException("The maximum size must be at least 100KB");
             if (string.IsNullOrEmpty(SourceDirectory) && !SourceDirectoryCurrent) throw new ArgumentException("The source directory can't be empty");
             if (SourceDirectoryCurrent && !string.IsNullOrEmpty(SourceDirectory))
