@@ -7,6 +7,7 @@
     {
         Add,
         Update,
-        Remove
+        Remove,
+        Failure
     }
 }

@@ -124,21 +124,21 @@ namespace quickup.Core
                 IReadOnlyList<KeyValuePair<string, IReadOnlyCollection<string>>> files = map.ToArray();
                 Parallel.For(0, files.Count, new ParallelOptions { MaxDegreeOfParallelism = threads }, i =>
                 {
-                    try
-                    {
-                        // Create the target directory
-                        KeyValuePair<string, IReadOnlyCollection<string>> pair = files[i];
-                        string
-                            relative = pair.Key.Substring(source.Length),
-                            folder = string.IsNullOrEmpty(relative)
-                                ? Path.Join(target, name)
-                                : Path.Join(target, name, relative);
-                        Directory.CreateDirectory(folder);
+                    // Create the target directory
+                    KeyValuePair<string, IReadOnlyCollection<string>> pair = files[i];
+                    string
+                        relative = pair.Key.Substring(source.Length),
+                        folder = string.IsNullOrEmpty(relative)
+                            ? Path.Join(target, name)
+                            : Path.Join(target, name, relative);
+                    Directory.CreateDirectory(folder);
 
-                        // Copy the original files, when needed
-                        foreach (string file in pair.Value)
+                    // Copy the original files, when needed
+                    foreach (string file in pair.Value)
+                    {
+                        string copy = Path.Join(folder, Path.GetFileName(file));
+                        try
                         {
-                            string copy = Path.Join(folder, Path.GetFileName(file));
                             if (!File.Exists(copy))
                             {
                                 File.Copy(file, copy);
@@ -146,15 +146,18 @@ namespace quickup.Core
                             }
                             else if (File.GetLastWriteTimeUtc(file).CompareTo(File.GetLastWriteTimeUtc(copy)) > 0)
                             {
+                                if (File.GetAttributes(copy).HasFlag(FileAttributes.ReadOnly))
+                                    File.SetAttributes(copy, FileAttributes.Normal); // In the case the original file was locked
                                 File.Copy(file, copy, true);
                                 statistics.AddOperation(copy, FileUpdateType.Update);
                             }
-                            bar.Report((double)Interlocked.Increment(ref progress) / total);
                         }
-                    }
-                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
-                    {
-                        // Carry on
+                        catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
+                        {
+                            // Log the failure and carry on
+                            statistics.AddOperation(copy, FileUpdateType.Failure);
+                        }
+                        bar.Report((double)Interlocked.Increment(ref progress) / total);
                     }
                 });
             }

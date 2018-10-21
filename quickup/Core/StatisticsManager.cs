@@ -41,7 +41,7 @@ namespace quickup.Core
         /// <param name="type">The operation performed on the current file</param>
         public void AddOperation([NotNull] string path, FileUpdateType type)
         {
-            if (type != FileUpdateType.Remove)
+            if (type == FileUpdateType.Add || type == FileUpdateType.Update)
             {
                 long size = new FileInfo(path).Length;
                 Interlocked.Add(ref _Bytes, size);
@@ -68,6 +68,7 @@ namespace quickup.Core
                 if (FileOperationsMap.TryGetValue(FileUpdateType.Add, out int i) && i > 0) yield return $"Added:\t\t\t{i}";
                 if (FileOperationsMap.TryGetValue(FileUpdateType.Update, out i) && i > 0) yield return $"Updated:\t\t\t{i}";
                 if (FileOperationsMap.TryGetValue(FileUpdateType.Remove, out i) && i > 0) yield return $"Removed:\t\t\t{i}";
+                if (FileOperationsMap.TryGetValue(FileUpdateType.Failure, out i) && i > 0) yield return $"Failed:\t\t\t{i}";
                 yield return $"Bytes copied:\t\t{_Bytes}";
             }
             yield return $"Approximate size:\t{_Bytes.ToFileSizeString()}";
