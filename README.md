@@ -25,8 +25,8 @@ Other options include:
 * `-b` | `--beep`: play a short feedback sound when the requested operation completes.
 * `-v` | `--verbose`: display additional info after analyzing the source directory.
 * `--source-current`: use the current working directory as the source path.
-* `multithread` : automatically parallelize the backup creation on the available CPU threads.
-* `threads` : when combined with `multithread`, specifies the maximum number of threads to use.
+* `--multithread` : automatically parallelize the backup creation on the available CPU threads.
+* `--threads` : when combined with `multithread`, specifies the maximum number of threads to use.
 
 ### Examples
 
