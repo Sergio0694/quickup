@@ -30,11 +30,10 @@ namespace quickup.Core
 
             // Load the source files to sync
             ConsoleHelper.WriteLine("Querying files...");
-            IReadOnlyCollection<string>
-                extensions = options.Preset == ExtensionsPreset.None
-                    ? options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray()
-                    : options.Preset.Convert(),
-                exclusions = new HashSet<string>(options.FileExclusions.Select(entry => $".{entry.ToLowerInvariant()}"));
+            options.Preprocess();
+            if (!options.Preset.TryConvert(out IReadOnlyList<string> extensions))
+                extensions = options.FileInclusions.Select(ext => ext.ToLowerInvariant()).ToArray();
+            IReadOnlyCollection<string> exclusions = new HashSet<string>(options.FileExclusions.Select(entry => $".{entry.ToLowerInvariant()}"));
             IReadOnlyDictionary<string, IReadOnlyCollection<string>> map = LoadFiles(options.SourceDirectory, extensions, exclusions, options.DirExclusions.ToArray(), options.Verbose);
 
             // Process the loaded files from the source directory

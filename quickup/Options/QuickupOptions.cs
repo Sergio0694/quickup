@@ -22,7 +22,7 @@ namespace quickup.Options
         [Option("ignore-dir", HelpText = "The list of optional subdirectories to ignore. Note that the dir name will be matched, not the relative path.", Required = false, Separator = ',')]
         public IEnumerable<string> DirExclusions { get; set; }
 
-        [Option('p', "preset", Default = ExtensionsPreset.None, HelpText = "An optional preset to quickly filter certain common file types. This option cannot be used when --include or --exclude are used. Existing options are [documents|images|music|videos|code].", Required = false)]
+        [Option('p', "preset", Default = ExtensionsPreset.None, HelpText = "An optional preset to quickly filter certain common file types. This option cannot be used when --include or --exclude are used. Existing options are [documents|images|music|videos|code|vs].", Required = false)]
         public ExtensionsPreset Preset { get; set; }
 
         [Option('M', "maxsize", Default = 104_857_600, HelpText = "The maximum size of files to be copied.", Required = false)]
@@ -50,13 +50,27 @@ namespace quickup.Options
         public int Threads { get; set; }
 
         /// <summary>
+        /// Expands the current special preset, if necessary
+        /// </summary>
+        public void Preprocess()
+        {
+            if (Preset.TryExpand(out var info))
+            {
+                FileExclusions = info.Exclusions;
+                DirExclusions = info.Directories;
+            }
+        }
+
+        /// <summary>
         /// Executes a preliminary validation of the current instance
         /// </summary>
         [AssertionMethod]
         public void Validate()
         {
             char[] invalid = Path.GetInvalidFileNameChars();
-            if (FileInclusions.Any(ext => ext.Any(c => invalid.Contains(c))))
+            if (FileInclusions.Any(ext => ext.Any(c => invalid.Contains(c)) || ext.Contains('.')))
+                throw new ArgumentException("One or more file extensions are not valid");
+            if (FileExclusions.Any(ext => ext.Any(c => invalid.Contains(c)) || ext.Contains('.')))
                 throw new ArgumentException("One or more file extensions are not valid");
             invalid = Path.GetInvalidPathChars();
             if (DirExclusions.Any(ext => ext.Contains(Path.DirectorySeparatorChar) || ext.Any(c => invalid.Contains(c))))
