@@ -13,12 +13,11 @@
     <PackageProjectUrl>https://github.com/Sergio0694/quickup</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/Sergio0694/quickup/blob/master/LICENSE</PackageLicenseUrl>
     <Description>A .NET Core 2.1 CLI tool to quickly create one-way backups from one folder to another</Description>
-    <PackageReleaseNotes>• Added files cleanup
-• Added more statistics
-• Minor tweaks and bug fixes</PackageReleaseNotes>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
-    <Version>1.1.0</Version>
+    <PackageReleaseNotes>• Readonly files are now updated correctly
+• Added new statistics</PackageReleaseNotes>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
