@@ -14,6 +14,7 @@
     <PackageLicenseUrl>https://github.com/Sergio0694/quickup/blob/master/LICENSE</PackageLicenseUrl>
     <Description>A .NET Core 2.1 CLI tool to quickly create one-way backups from one folder to another</Description>
     <PackageReleaseNotes>• Added --ignore-dir option to skip directories
+• Added the --id option to keep multiple backups with different versions
 • Added new VS and UWP presets</PackageReleaseNotes>
     <AssemblyVersion>1.2.0.0</AssemblyVersion>
     <FileVersion>1.2.0.0</FileVersion>

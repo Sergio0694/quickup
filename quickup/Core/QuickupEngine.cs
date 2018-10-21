@@ -43,11 +43,11 @@ namespace quickup.Core
                     ? Environment.ProcessorCount
                     : Environment.ProcessorCount >= options.Threads ? options.Threads : Environment.ProcessorCount
                 : 1;
-            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, statistics, threads);
+            SyncFiles(map, options.SourceDirectory, options.TargetDirectory, options.Id, statistics, threads);
 
             // Cleanup
             ConsoleHelper.WriteLine("Cleanup...");
-            Cleanup(map, options.SourceDirectory, options.TargetDirectory, statistics);
+            Cleanup(map, options.SourceDirectory, options.TargetDirectory, options.Id, statistics);
 
             // Display the statistics
             statistics.StopTracking();
@@ -113,7 +113,7 @@ namespace quickup.Core
         [SuppressMessage("ReSharper", "AccessToDisposedClosure")] // Progress bar inside parallel code
         private static void SyncFiles(
             [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
-            [NotNull] string source, [NotNull] string target,
+            [NotNull] string source, [NotNull] string target, [NotNull] string id,
             [NotNull] StatisticsManager statistics,
             int threads)
         {
@@ -131,8 +131,8 @@ namespace quickup.Core
                     string
                         relative = pair.Key.Substring(source.Length),
                         folder = string.IsNullOrEmpty(relative)
-                            ? Path.Join(target, name)
-                            : Path.Join(target, name, relative);
+                            ? Path.Join(target, $"{name}{id}")
+                            : Path.Join(target, $"{name}{id}", relative);
                     Directory.CreateDirectory(folder);
 
                     // Copy the original files, when needed
@@ -174,12 +174,12 @@ namespace quickup.Core
         /// <param name="statistics">The statistics instance to track the performed operations</param>
         private static void Cleanup(
             [NotNull] IReadOnlyDictionary<string, IReadOnlyCollection<string>> map,
-            [NotNull] string source, [NotNull] string target,
+            [NotNull] string source, [NotNull] string target, [NotNull] string id,
             [NotNull] StatisticsManager statistics)
         {
             string
                 name = Path.GetFileName(source),
-                root = Path.Join(target, name);
+                root = Path.Join(target, $"{name}{id}");
 
             void Cleanup(string directory)
             {

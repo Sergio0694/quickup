@@ -25,6 +25,9 @@ namespace quickup.Options
         [Option('p', "preset", Default = ExtensionsPreset.None, HelpText = "An optional preset to quickly filter certain common file types. This option cannot be used when --include or --exclude are used. Existing options are [documents|images|music|videos|code|vs].", Required = false)]
         public ExtensionsPreset Preset { get; set; }
 
+        [Option("id", HelpText = "An optional id to keep multiple backups of the same source folder in the same directory.", Required = false)]
+        public string Id { get; set; }
+
         [Option('M', "maxsize", Default = 104_857_600, HelpText = "The maximum size of files to be copied.", Required = false)]
         public long MaxSize { get; set; }
 
@@ -50,10 +53,11 @@ namespace quickup.Options
         public int Threads { get; set; }
 
         /// <summary>
-        /// Expands the current special preset, if necessary
+        /// Preprocesses the current options and applies the user settings
         /// </summary>
         public void Preprocess()
         {
+            Id = string.IsNullOrEmpty(Id) ? string.Empty : $"_{Id}";
             if (Preset.TryExpand(out var info))
             {
                 FileExclusions = info.Exclusions;
@@ -75,6 +79,8 @@ namespace quickup.Options
             invalid = Path.GetInvalidPathChars();
             if (DirExclusions.Any(ext => ext.Contains(Path.DirectorySeparatorChar) || ext.Any(c => invalid.Contains(c))))
                 throw new ArgumentException("One or more dir exclusions are not valid");
+            if (!string.IsNullOrEmpty(Id) && (Id.Contains(Path.DirectorySeparatorChar) || Id.Any(c => invalid.Contains(c))))
+                throw new ArgumentException("The backup id is not valid");
             if (MaxSize <= 100) throw new ArgumentException("The maximum size must be at least 100KB");
             if (string.IsNullOrEmpty(SourceDirectory) && !SourceDirectoryCurrent) throw new ArgumentException("The source directory can't be empty");
             if (SourceDirectoryCurrent && !string.IsNullOrEmpty(SourceDirectory))
