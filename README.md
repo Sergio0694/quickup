@@ -2,6 +2,8 @@
 
 [![NuGet](https://img.shields.io/nuget/v/quickup.svg)](https://www.nuget.org/packages/quickup/) [![NuGet](https://img.shields.io/nuget/dt/quickup.svg)](https://www.nuget.org/stats/packages/quickup?groupby=Version) [![Twitter Follow](https://img.shields.io/twitter/follow/Sergio0694.svg?style=flat&label=Follow)](https://twitter.com/SergioPedri)
 
+![quickup](https://i.imgur.com/UJEK2Bd.gif)
+
 A .NET Core 2.1 CLI tool to create one-way backups from one folder to another. This can be used to keep an up-to-date copy of a given folder on another hard-drive.
 
 ## Installing from DotGet
@@ -25,7 +27,7 @@ Other options include:
 * `-p` | `--preset`: An optional preset to quickly filter common file types [documents|images|music|videos|code|VS|UWP].
 * `-b` | `--beep`: play a short feedback sound when the requested operation completes.
 * `-v` | `--verbose`: display additional info after analyzing the source directory.
-* `id`: an optional backup id, to keep multiple backups in the same directory with different versions.
+* `--id`: an optional backup id, to keep multiple backups in the same directory with different versions.
 * `--source-current`: use the current working directory as the source path.
 * `--multithread` : automatically parallelize the backup creation on the available CPU threads.
 * `--threads` : when combined with `multithread`, specifies the maximum number of threads to use.
