@@ -69,7 +69,6 @@ namespace quickup.Core
                 if (FileOperationsMap.TryGetValue(FileUpdateType.Update, out i) && i > 0) yield return $"Updated:\t\t\t{i}";
                 if (FileOperationsMap.TryGetValue(FileUpdateType.Remove, out i) && i > 0) yield return $"Removed:\t\t\t{i}";
                 if (FileOperationsMap.TryGetValue(FileUpdateType.Failure, out i) && i > 0) yield return $"Failed:\t\t\t{i}";
-                yield return $"Bytes copied:\t\t{_Bytes}";
             }
             yield return $"Approximate size:\t{_Bytes.ToFileSizeString()}";
             if (verbose)

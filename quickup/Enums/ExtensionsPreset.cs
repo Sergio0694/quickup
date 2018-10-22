@@ -19,7 +19,8 @@ namespace quickup.Enums
 
         // Special (exclusions/directoryes)
         VS,
-        UWP
+        UWP,
+        Python
     }
 
     /// <summary>
@@ -73,6 +74,9 @@ namespace quickup.Enums
                     return true;
                 case ExtensionsPreset.UWP:
                     expansion = (new[] { "user", "suo", "pfx" }, new[] { ".git", ".vs", "bin", "obj", "Builds", "BundleArtifacts" });
+                    return true;
+                case ExtensionsPreset.Python:
+                    expansion = (new[] { "user", "suo" }, new[] { ".git", "__pycache__" });
                     return true;
                 default:
                     expansion = default;
