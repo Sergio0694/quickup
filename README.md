@@ -21,9 +21,11 @@ And that's it, you're ready to go!
 Other options include:
 * `-i` | `--include`: a list of file extensions to use to filter the files in the source directory.
 * `-e` | `--exclude`: an optional list of file extensions to ignore (this option and `include` are mutually exclusive).
-* `-p` | `--preset`: An optional preset to quickly filter common file types [documents|images|music|videos|code].
+* `--ignore-dir`: an optional list of directory names to ignore from the source tree.
+* `-p` | `--preset`: An optional preset to quickly filter common file types [documents|images|music|videos|code|VS|UWP].
 * `-b` | `--beep`: play a short feedback sound when the requested operation completes.
 * `-v` | `--verbose`: display additional info after analyzing the source directory.
+* `id`: an optional backup id, to keep multiple backups in the same directory with different versions.
 * `--source-current`: use the current working directory as the source path.
 * `--multithread` : automatically parallelize the backup creation on the available CPU threads.
 * `--threads` : when combined with `multithread`, specifies the maximum number of threads to use.
@@ -33,7 +35,13 @@ Other options include:
 Create a backup of folder A on another drive, notify when the operation finishes and play a notification sound:
 
 ```
-quickup -s c:\users\myname\documents\A -t d:\backups -b -v
+quickup -s C:\Users\MyName\Documents\A -t D:\Backups -b -v
+```
+
+Backup the current directory on another drive, using the Visual Studio preset (ignores \.vs, \bin, \obj folders):
+
+```
+quickup --source-current -t D:\Backups -p vs
 ```
 
 ## Dependencies
