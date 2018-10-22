@@ -2,7 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/quickup.svg)](https://www.nuget.org/packages/quickup/) [![NuGet](https://img.shields.io/nuget/dt/quickup.svg)](https://www.nuget.org/stats/packages/quickup?groupby=Version) [![Twitter Follow](https://img.shields.io/twitter/follow/Sergio0694.svg?style=flat&label=Follow)](https://twitter.com/SergioPedri)
 
-![quickup](https://i.imgur.com/UJEK2Bd.gif)
+![quickup](https://i.imgur.com/rDSM31g.gif)
 
 A .NET Core 2.1 CLI tool to create one-way backups from one folder to another. This can be used to keep an up-to-date copy of a given folder on another hard-drive.
 
